@@ -1,0 +1,7 @@
+source https://api.nuget.org/v3/index.json
+
+nuget Microsoft.NET.Test.Sdk 15.3.0-preview-20170628-02
+nuget Mono.Reflection 1.1.0.0
+nuget MSTest.TestAdapter 1.1.18
+nuget MSTest.TestFramework 1.1.18
+nuget System.Reflection.Emit.Lightweight 4.3.0

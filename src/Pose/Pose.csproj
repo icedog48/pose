@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Title>Pose</Title>
@@ -13,8 +14,5 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/tonerdo/pose</RepositoryUrl>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Mono.Reflection" Version="1.1.0.0" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
-  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
