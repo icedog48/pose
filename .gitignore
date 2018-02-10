@@ -295,3 +295,6 @@ __pycache__/
 
 # OSX
 .DS_Store
+
+#paket
+.paket/paket.exe

@@ -42,14 +42,19 @@ namespace Pose.Helpers
             return index;
         }
 
-        public static int GetIndexOfMatchingShim(MethodBase methodBase, object obj)
-            => GetIndexOfMatchingShim(methodBase, methodBase.DeclaringType, obj);
+        public static int GetIndexOfMatchingShim(MethodBase methodBase, object obj) => GetIndexOfMatchingShim(methodBase, methodBase.DeclaringType, obj);
 
         public static MethodInfo GetRuntimeMethodForVirtual(Type type, MethodInfo methodInfo)
         {
             BindingFlags bindingFlags = BindingFlags.Instance | (methodInfo.IsPublic ? BindingFlags.Public : BindingFlags.NonPublic);
             Type[] types = methodInfo.GetParameters().Select(p => p.ParameterType).ToArray();
-            return type.GetMethod(methodInfo.Name, bindingFlags, null, types, null);
+            
+            var runtimeMethodInfo = type.GetMethod(methodInfo.Name, bindingFlags, null, types, null);
+
+            if (runtimeMethodInfo != null) return runtimeMethodInfo;
+            
+            // Try to find the method 
+            return type.GetRuntimeMethods().FirstOrDefault(x => x.Name.Contains(methodInfo.Name));
         }
 
         public static Module GetOwningModule() => typeof(StubHelper).Module;
