@@ -29,10 +29,6 @@ namespace Pose.Helpers
 
         public static int GetIndexOfMatchingShim(MethodBase methodBase, Type type, object obj)
         {
-            var name = methodBase.Name;
-
-            Console.WriteLine(name);
-
             if (methodBase.IsStatic || obj == null)
                 return Array.FindIndex(PoseContext.Shims, s => s.Original == methodBase);
 
@@ -55,12 +51,10 @@ namespace Pose.Helpers
             
             var runtimeMethodInfo = type.GetMethod(methodInfo.Name, bindingFlags, null, types, null);
 
-            if (runtimeMethodInfo == null)
-            {
-                return type.GetRuntimeMethods().FirstOrDefault(x => x.Name.Contains(methodInfo.Name));
-            }
-
-            return runtimeMethodInfo;
+            if (runtimeMethodInfo != null) return runtimeMethodInfo;
+            
+            // Try to find the method 
+            return type.GetRuntimeMethods().FirstOrDefault(x => x.Name.Contains(methodInfo.Name));
         }
 
         public static Module GetOwningModule() => typeof(StubHelper).Module;
