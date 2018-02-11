@@ -9,6 +9,7 @@ using Pose.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static System.Console;
+using System.Diagnostics;
 
 namespace Pose.Tests
 {
@@ -80,8 +81,7 @@ namespace Pose.Tests
 
             Assert.AreEqual(typeof(Thread).GetProperty(nameof(Thread.CurrentCulture), typeof(CultureInfo)).SetMethod, shim.Original);
             Assert.IsNull(shim.Replacement);
-        }
-        
+        }        
         
         [TestMethod]
         public void TestReplacePropertySetterAction()
@@ -113,6 +113,110 @@ namespace Pose.Tests
 
             Assert.IsTrue(getterExecuted, "Getter not executed");
             Assert.IsTrue(setterExecuted, "Setter not executed");
+        }
+
+        [TestMethod]
+        public void TestReplaceWithMethodInfo()
+        {
+            var action = new Action<string>((string value) => 
+            {
+                Debug.WriteLine(value);
+            });
+
+            var writeLog = typeof(Console).GetMethod("WriteLine", new Type[] { typeof(string) });
+
+            Shim shim = Shim.Replace(typeof(Console), writeLog).With(action);
+
+            Assert.AreEqual(writeLog, shim.Original);
+            Assert.AreSame(typeof(Console), shim.Type);
+            Assert.AreEqual(action, shim.Replacement);
+        }        
+
+        [TestMethod]
+        public void TestIsolateShimWithMethodInfo()
+        {
+            var called = false;
+
+            var action = new Action<string>((string value) =>
+            {
+                called = true;
+            });
+
+            var writeLog = typeof(Console).GetMethod("WriteLine", new Type[] { typeof(string) });
+
+            Shim shim = Shim.Replace(typeof(Console), writeLog).With(action);
+
+            PoseContext.Isolate(() => 
+            {
+                Console.WriteLine("Teste");
+            }, shim);
+
+            Assert.AreEqual(true, called);
+        }
+
+        private static class SomeStaticClass
+        {
+            private static void SomePrivateMethod() { }
+
+            public static void CallSomePrivateMethod()
+            {
+                SomePrivateMethod();
+            }
+        }
+
+        [TestMethod]
+        public void TestIsolateShimWithPrivateStaticMethod()
+        {
+            var called = false;
+
+            var action = new Action(() =>
+            {
+                called = true;
+            });
+
+            var somePrivateMethod = typeof(SomeStaticClass).GetMethod("SomePrivateMethod", BindingFlags.Static | BindingFlags.NonPublic);
+
+            Shim shim = Shim.Replace(typeof(SomeStaticClass), somePrivateMethod).With(action);
+
+            PoseContext.Isolate(() =>
+            {
+                SomeStaticClass.CallSomePrivateMethod();
+            }, shim);
+
+            Assert.AreEqual(true, called);
+        }
+
+        private class SomePrivateClass
+        {
+            private void SomePrivateMethod() { }
+
+            public void CallPrivateMethod()
+            {
+                this.SomePrivateMethod();
+            }
+        }
+
+        [TestMethod]
+        public void TestIsolateShimWithPrivateInstanceMethod()
+        {   
+            var called = false;
+
+            var action = new Action<SomePrivateClass>((SomePrivateClass @this) =>
+            {
+                called = true;
+            });
+                        
+            var somePrivateMethod = typeof(SomePrivateClass).GetMethod("SomePrivateMethod", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            Shim shim = Shim.Replace(typeof(SomePrivateClass), somePrivateMethod).With(action);
+
+            PoseContext.Isolate(() =>
+            {
+                var instanceOfSomePrivateClass = new SomePrivateClass();
+                instanceOfSomePrivateClass.CallPrivateMethod();
+            }, shim);
+
+            Assert.AreEqual(true, called);
         }
     }
 }

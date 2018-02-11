@@ -23,9 +23,15 @@ namespace Pose
             Shims = shims;
             StubCache = new Dictionary<MethodBase, DynamicMethod>();
 
-            Type delegateType = typeof(Action<>).MakeGenericType(entryPoint.Target.GetType());
-            MethodRewriter rewriter = MethodRewriter.CreateRewriter(entryPoint.Method);
-            ((MethodInfo)(rewriter.Rewrite())).CreateDelegate(delegateType).DynamicInvoke(entryPoint.Target);
+            var delegateType = typeof(Action<>).MakeGenericType(entryPoint.Target.GetType());
+
+            var rewriter = MethodRewriter.CreateRewriter(entryPoint.Method);
+
+            var rewroteEntryPoint = (MethodInfo)(rewriter.Rewrite());
+
+            var rewroteEntryPointDelegate = rewroteEntryPoint.CreateDelegate(delegateType);
+
+            rewroteEntryPointDelegate.DynamicInvoke(entryPoint.Target);
         }
     }
 }
