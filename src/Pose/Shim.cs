@@ -50,6 +50,7 @@ namespace Pose
         private Shim(MethodBase original, object instanceOrType)
         {
             _original = original;
+
             if (instanceOrType is Type type)
                 _type = type;
             else
@@ -61,6 +62,18 @@ namespace Pose
 
         public static Shim Replace<T>(Expression<Func<T>> expression, bool setter = false)
             => ReplaceImpl(expression, setter);
+
+        public static Shim Replace(Type typeOf, MethodInfo methodInfo, bool setter = false)
+        {
+            //if (!methodInfo.IsStatic) throw new InvalidOperationException("'methodInfo' must be a static method");
+
+            return new Shim(methodInfo, typeOf) { _setter = setter };
+        }
+
+        //public static Shim Replace<T>(MethodInfo methodInfo, bool setter = false)
+        //{
+        //    return new Shim(methodInfo, typeof(T)) { _setter = setter };
+        //}
 
         private static Shim ReplaceImpl<T>(Expression<T> expression, bool setter)
         {
